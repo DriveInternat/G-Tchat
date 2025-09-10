@@ -71,8 +71,10 @@ Ce fichier fournit un chat global simple (sans authentification) utilisant Fireb
   </main>
 
   <!-- Firebase compat SDK (facile à utiliser dans une page statique) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<!-- Firebase compat SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
   <script>
     // ==== REMPLACEZ par votre configuration Firebase ====
@@ -82,28 +84,28 @@ Ce fichier fournit un chat global simple (sans authentification) utilisant Fireb
     // https://firebase.google.com/docs/web/setup#available-libraries
 
     // Your web app's Firebase configuration
+    // Configuration Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyD4FuUOmGCb00GLt2gmdcayaSliaOS7DX0",
       authDomain: "g-tchat-a1d75.firebaseapp.com",
       databaseURL: "https://g-tchat-a1d75-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "g-tchat-a1d75",
-      storageBucket: "g-tchat-a1d75.firebasestorage.app",
+      storageBucket: "g-tchat-a1d75.appspot.com",
       messagingSenderId: "248087967340",
       appId: "1:248087967340:web:602ad89b69877f9178ca49"
     };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    // ================================================
-
-    // Initialisation
+    // Initialisation Firebase (compat)
     firebase.initializeApp(firebaseConfig);
+
+    // Connexion anonyme
+    firebase.auth().signInAnonymously()
+      .then(() => console.log("Connecté anonymement ✅"))
+      .catch(err => console.error("Erreur auth anonyme:", err));
+
     const db = firebase.database();
     const messagesRef = db.ref('messages');
-    
-    firebase.auth().signInAnonymously().catch(err => {
-      console.error("Erreur d'auth anonyme:", err);
-    });
+
 
     // UI éléments
     const messagesEl = document.getElementById('messages');
