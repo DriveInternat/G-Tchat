@@ -44,105 +44,82 @@ const textEl = document.getElementById("text");
 const sendBtn = document.getElementById("send");
 const filterEl = document.getElementById("filter");
 const scrollBottomBtn = document.getElementById("scrollBottom");
+const googleLoginBtn = document.getElementById("googleLoginBtn");
 
 // Auth anonyme auto
 firebase.auth().onAuthStateChanged(async user => {
   if (user) {
     currentUser = user;
-    try {
-      await checkBan(user.uid, currentIp);
-    } catch { return; }
-    adminsRef.child(user.uid).on("value", snap => {
-      isAdmin = snap.exists();
-    });
+    try { await checkBan(user.uid, currentIp); } catch { return; }
+    adminsRef.child(user.uid).on("value", snap => { isAdmin = snap.exists(); });
   } else {
     firebase.auth().signInAnonymously();
   }
 });
 
+// Connexion Google
+googleLoginBtn.addEventListener("click", () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider).catch(err => alert(err.message));
+});
+
 // Lecture messages
 messagesRef.limitToLast(200).on("child_added", snapshot => {
-  const m = snapshot.val();
-  appendMessage(m);
+  appendMessage(snapshot.val());
 });
 
 // Envoi message
 sendBtn.addEventListener("click", sendMessage);
 textEl.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault(); sendMessage();
-  }
+  if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendMessage(); }
 });
-function sendMessage() {
+function sendMessage(){
   const nick = (nickEl.value || "Anon").trim().slice(0,30);
   const text = (textEl.value || "").trim().slice(0,1000);
-  if (!text) return;
+  if(!text) return;
   const payload = {
     uid: currentUser.uid,
     ip: currentIp,
     nick,
     text,
+    photo: currentUser.photoURL || null,
     ts: Date.now()
   };
-  messagesRef.push(payload).then(() => { textEl.value = ""; });
+  messagesRef.push(payload).then(()=>{ textEl.value=""; });
 }
 
 // Ajout message DOM
-function appendMessage(m) {
-  const el = document.createElement("div");
-  el.className = "message";
+function appendMessage(m){
+  const el = document.createElement("div"); el.className="message";
 
-  const avatar = document.createElement("div");
-  avatar.className = "avatar";
-  avatar.textContent = (m.nick || "A").slice(0,2).toUpperCase();
+  const avatar = document.createElement("div"); avatar.className="avatar";
+  if(m.photo){ const img=document.createElement("img"); img.src=m.photo; avatar.appendChild(img); }
+  else{ avatar.textContent=(m.nick||"A").slice(0,2).toUpperCase(); }
 
-  const bubble = document.createElement("div");
-  bubble.className = "bubble";
+  const bubble = document.createElement("div"); bubble.className="bubble";
+  const metaRow = document.createElement("div"); metaRow.className="meta-row";
+  const nameSpan=document.createElement("strong"); nameSpan.textContent=m.nick||"Anon";
+  const timeSpan=document.createElement("span"); timeSpan.textContent=new Date(m.ts).toLocaleString();
+  metaRow.appendChild(nameSpan); metaRow.appendChild(timeSpan);
 
-  const metaRow = document.createElement("div");
-  metaRow.className = "meta-row";
-
-  const nameSpan = document.createElement("strong");
-  nameSpan.textContent = m.nick || "Anon";
-
-  const timeSpan = document.createElement("span");
-  timeSpan.textContent = new Date(m.ts).toLocaleString();
-
-  metaRow.appendChild(nameSpan);
-  metaRow.appendChild(timeSpan);
-
-  // Bouton bannir si admin
-  if (isAdmin && m.uid && m.uid !== currentUser.uid) {
-    const banBtn = document.createElement("button");
-    banBtn.textContent = "🚫 Bannir";
-    banBtn.addEventListener("click", () => {
-      if (m.uid) bansRef.child(m.uid).set(true);
-      if (m.ip) bansRef.child(m.ip).set(true);
-      alert(m.nick + " a été banni.");
-    });
+  // Bannir si admin
+  if(isAdmin && m.uid && m.uid!==currentUser.uid){
+    const banBtn=document.createElement("button"); banBtn.textContent="🚫 Bannir";
+    banBtn.addEventListener("click",()=>{ if(m.uid)bansRef.child(m.uid).set(true); if(m.ip)bansRef.child(m.ip).set(true); alert(m.nick+" a été banni."); });
     metaRow.appendChild(banBtn);
   }
 
-  const txt = document.createElement("div");
-  txt.textContent = m.text || "";
-
-  bubble.appendChild(metaRow);
-  bubble.appendChild(txt);
-  el.appendChild(avatar);
-  el.appendChild(bubble);
-  messagesEl.appendChild(el);
-
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+  const txt=document.createElement("div"); txt.textContent=m.text||"";
+  bubble.appendChild(metaRow); bubble.appendChild(txt); el.appendChild(avatar); el.appendChild(bubble);
+  messagesEl.appendChild(el); messagesEl.scrollTop=messagesEl.scrollHeight;
 }
 
 // Filtre
-filterEl.addEventListener("input", () => {
-  const q = filterEl.value.trim().toLowerCase();
-  Array.from(messagesEl.children).forEach(item => {
-    const text = item.innerText.toLowerCase();
-    item.style.display = !q || text.includes(q) ? "" : "none";
+filterEl.addEventListener("input",()=>{
+  const q=filterEl.value.trim().toLowerCase();
+  Array.from(messagesEl.children).forEach(item=>{
+    const text=item.innerText.toLowerCase();
+    item.style.display=!q||text.includes(q)?"":"none";
   });
 });
-scrollBottomBtn.addEventListener("click", () => {
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-});
+scrollBottomBtn.addEventListener("click",()=>{ messagesEl.scrollTop=messagesEl.scrollHeight; });

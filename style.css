@@ -22,7 +22,7 @@ body{
   display:grid;
   grid-template-rows:auto 1fr auto;
   gap:12px;
-  box-shadow:0 10px 30px rgba(2,6,23,0.6);
+  box-shadow:0 10px 30px rgba(2,6,23,0.6)
 }
 header{display:flex;align-items:center;gap:12px}
 header h1{margin:0;font-size:1.1rem}
@@ -52,7 +52,7 @@ header h1{margin:0;font-size:1.1rem}
   line-height:1.25;
 }
 .meta-row{display:flex;gap:8px;align-items:center;font-size:0.8rem;color:var(--muted)}
-.top-row{display:flex;gap:8px;margin-bottom:8px}
+.top-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
 .send-row{display:flex;gap:8px}
 input,textarea{
   background:transparent;
@@ -60,7 +60,7 @@ input,textarea{
   padding:8px 10px;
   border-radius:8px;
   color:var(--msg);
-  outline:none;
+  outline:none
 }
 input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.35)}
 button{
@@ -69,7 +69,7 @@ button{
   padding:9px 12px;
   border-radius:8px;
   color:white;
-  cursor:pointer;
+  cursor:pointer
 }
 button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
 .actions{display:flex;flex-direction:column;gap:8px}
