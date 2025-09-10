@@ -1,17 +1,16 @@
 // ==== Configuration Firebase (remplacez avec la vôtre) ====
 const firebaseConfig = {
-  apiKey: "VOTRE_API_KEY",
-  authDomain: "VOTRE_PROJECT.firebaseapp.com",
-  databaseURL: "https://VOTRE_PROJECT.firebaseio.com",
-  projectId: "VOTRE_PROJECT",
-  storageBucket: "VOTRE_PROJECT.appspot.com",
-  messagingSenderId: "VOTRE_SENDER_ID",
-  appId: "VOTRE_APP_ID"
+  apiKey: "AIzaSyD4FuUOmGCb00GLt2gmdcayaSliaOS7DX0",
+  authDomain: "g-tchat-a1d75.firebaseapp.com",
+  databaseURL: "https://g-tchat-a1d75-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "g-tchat-a1d75",
+  storageBucket: "g-tchat-a1d75.appspot.com",
+  messagingSenderId: "248087967340",
+  appId: "1:248087967340:web:602ad89b69877f9178ca49"
 };
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
 
-// Références DB
+const db = firebase.database();
 const messagesRef = db.ref("messages");
 const bansRef = db.ref("bans");
 const adminsRef = db.ref("admins");
@@ -45,17 +44,14 @@ const textEl = document.getElementById("text");
 const sendBtn = document.getElementById("send");
 const filterEl = document.getElementById("filter");
 const scrollBottomBtn = document.getElementById("scrollBottom");
-const loginPopup = document.getElementById("loginPopup");
 
-// Connexion anonyme par défaut
+// Auth anonyme auto
 firebase.auth().onAuthStateChanged(async user => {
   if (user) {
     currentUser = user;
     try {
       await checkBan(user.uid, currentIp);
     } catch { return; }
-    enableChatUI();
-    // Vérifie admin
     adminsRef.child(user.uid).on("value", snap => {
       isAdmin = snap.exists();
     });
@@ -64,84 +60,41 @@ firebase.auth().onAuthStateChanged(async user => {
   }
 });
 
-// Connexion Google
-document.getElementById("googleLoginBtn").addEventListener("click", () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(provider)
-    .then(() => loginPopup.style.display = "none")
-    .catch(err => alert(err.message));
-});
-
-// Connexion Email
-document.getElementById("loginEmailBtn").addEventListener("click", () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  firebase.auth().signInWithEmailAndPassword(email, password)
-    .then(() => loginPopup.style.display = "none")
-    .catch(err => alert(err.message));
-});
-
-// Inscription Email
-document.getElementById("registerEmailBtn").addEventListener("click", () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  firebase.auth().createUserWithEmailAndPassword(email, password)
-    .then(() => loginPopup.style.display = "none")
-    .catch(err => alert(err.message));
-});
-
-// Activer chat
-function enableChatUI() {
-  nickEl.disabled = false;
-  textEl.disabled = false;
-  sendBtn.disabled = false;
-  loginPopup.style.display = "none";
-}
-
-// Écoute des messages
+// Lecture messages
 messagesRef.limitToLast(200).on("child_added", snapshot => {
   const m = snapshot.val();
-  appendMessage(m, snapshot.key);
+  appendMessage(m);
 });
 
-// Envoyer message
+// Envoi message
 sendBtn.addEventListener("click", sendMessage);
 textEl.addEventListener("keydown", e => {
   if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
+    e.preventDefault(); sendMessage();
   }
 });
-
 function sendMessage() {
-  const nick = (nickEl.value || "Anon").trim().slice(0, 30);
-  const text = (textEl.value || "").trim().slice(0, 1000);
+  const nick = (nickEl.value || "Anon").trim().slice(0,30);
+  const text = (textEl.value || "").trim().slice(0,1000);
   if (!text) return;
   const payload = {
     uid: currentUser.uid,
     ip: currentIp,
     nick,
     text,
-    photo: currentUser.photoURL || null,
     ts: Date.now()
   };
   messagesRef.push(payload).then(() => { textEl.value = ""; });
 }
 
-// Affichage message
-function appendMessage(m, key) {
+// Ajout message DOM
+function appendMessage(m) {
   const el = document.createElement("div");
   el.className = "message";
 
   const avatar = document.createElement("div");
   avatar.className = "avatar";
-  if (m.photo) {
-    const img = document.createElement("img");
-    img.src = m.photo;
-    avatar.appendChild(img);
-  } else {
-    avatar.textContent = (m.nick || "A").slice(0,2).toUpperCase();
-  }
+  avatar.textContent = (m.nick || "A").slice(0,2).toUpperCase();
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
@@ -183,15 +136,13 @@ function appendMessage(m, key) {
 }
 
 // Filtre
-filterEl.addEventListener("input", applyFilter);
-function applyFilter() {
+filterEl.addEventListener("input", () => {
   const q = filterEl.value.trim().toLowerCase();
   Array.from(messagesEl.children).forEach(item => {
     const text = item.innerText.toLowerCase();
     item.style.display = !q || text.includes(q) ? "" : "none";
   });
-}
-
+});
 scrollBottomBtn.addEventListener("click", () => {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 });

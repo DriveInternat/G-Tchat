@@ -1,5 +1,5 @@
 :root {
-  --bg:#0f1724;--card:#0b1220;--accent:#7c3aed;--muted:#94a3b8;--msg:#e6eef8
+  --bg:#0f1724;--accent:#7c3aed;--muted:#94a3b8;--msg:#e6eef8;
 }
 *{box-sizing:border-box}
 body{
@@ -10,7 +10,7 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  height:100vh
+  height:100vh;
 }
 .app{
   width:100%;
@@ -22,7 +22,7 @@ body{
   display:grid;
   grid-template-rows:auto 1fr auto;
   gap:12px;
-  box-shadow:0 10px 30px rgba(2,6,23,0.6)
+  box-shadow:0 10px 30px rgba(2,6,23,0.6);
 }
 header{display:flex;align-items:center;gap:12px}
 header h1{margin:0;font-size:1.1rem}
@@ -34,26 +34,33 @@ header h1{margin:0;font-size:1.1rem}
   overflow:auto;
   display:flex;
   flex-direction:column;
-  gap:8px
+  gap:8px;
 }
 .message{display:flex;gap:10px;align-items:flex-start}
 .avatar{
   width:38px;height:38px;border-radius:8px;
   background:linear-gradient(180deg,var(--accent),#6d28d9);
   display:flex;align-items:center;justify-content:center;
-  font-weight:700;color:white;overflow:hidden
+  font-weight:700;color:white;overflow:hidden;
 }
 .avatar img{width:100%;height:100%;object-fit:cover;border-radius:8px}
-.bubble{background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:10px;max-width:78%;line-height:1.25}
+.bubble{
+  background:rgba(255,255,255,0.03);
+  padding:10px 12px;
+  border-radius:10px;
+  max-width:78%;
+  line-height:1.25;
+}
 .meta-row{display:flex;gap:8px;align-items:center;font-size:0.8rem;color:var(--muted)}
+.top-row{display:flex;gap:8px;margin-bottom:8px}
 .send-row{display:flex;gap:8px}
-input[type=text],textarea{
+input,textarea{
   background:transparent;
   border:1px solid rgba(255,255,255,0.06);
   padding:8px 10px;
   border-radius:8px;
   color:var(--msg);
-  outline:none
+  outline:none;
 }
 input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.35)}
 button{
@@ -62,20 +69,7 @@ button{
   padding:9px 12px;
   border-radius:8px;
   color:white;
-  cursor:pointer
+  cursor:pointer;
 }
 button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
-#loginPopup{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,0.7);
-  display:flex;align-items:center;justify-content:center;
-}
-#loginPopup .popup-content{
-  background:#fff;color:#000;
-  padding:20px;
-  border-radius:12px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  min-width:280px
-}
+.actions{display:flex;flex-direction:column;gap:8px}

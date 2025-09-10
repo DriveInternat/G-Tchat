@@ -1,49 +1,36 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>G-Tchat</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Chat App -->
   <main class="app">
     <header>
       <h1>G-Tchat</h1>
-      <div class="meta">Messages en temps réel · Firebase Realtime DB</div>
+      <div class="meta">Chat global anonyme · Firebase</div>
     </header>
 
     <section id="messages" class="chat-window" aria-live="polite"></section>
 
     <div>
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input id="nick" type="text" placeholder="Votre pseudo" disabled />
-        <input id="filter" type="text" placeholder="Filtrer par pseudo ou texte (optionnel)" />
+      <div class="top-row">
+        <input id="nick" type="text" placeholder="Votre pseudo (ex: Alice)" />
+        <input id="filter" type="text" placeholder="Filtrer (optionnel)" />
       </div>
       <div class="send-row">
-        <textarea id="text" rows="2" placeholder="Écrivez un message..." disabled></textarea>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <button id="send" disabled>Envoyer</button>
+        <textarea id="text" rows="2" placeholder="Écrivez un message..."></textarea>
+        <div class="actions">
+          <button id="send">Envoyer</button>
           <button id="scrollBottom" class="ghost">Aller en bas</button>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- Login Popup -->
-  <div id="loginPopup">
-    <div class="popup-content">
-      <h2>Connexion à G-Tchat</h2>
-      <button id="googleLoginBtn">Se connecter avec Google</button>
-      <input id="email" type="email" placeholder="Email" />
-      <input id="password" type="password" placeholder="Mot de passe" />
-      <button id="loginEmailBtn">Se connecter</button>
-      <button id="registerEmailBtn">S'inscrire</button>
-    </div>
-  </div>
-
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
