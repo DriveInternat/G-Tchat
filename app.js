@@ -85,7 +85,7 @@ function sendMessage(){
     photo: currentUser.photoURL || null,
     ts: Date.now()
   };
-  messagesRef.push(payload).then(()=>{ textEl.value=""; });
+  const msgRef = messagesRef.push(payload).then(()=>{ textEl.value=""; return payload; });
 }
 
 // Ajout message DOM
@@ -98,7 +98,9 @@ function appendMessage(m){
 
   const bubble = document.createElement("div"); bubble.className="bubble";
   const metaRow = document.createElement("div"); metaRow.className="meta-row";
-  const nameSpan=document.createElement("strong"); nameSpan.textContent=m.nick||"Anon";
+  const nameSpan=document.createElement("strong"); 
+  nameSpan.textContent=m.nick||"Anon";
+  if(m.isAdmin) nameSpan.classList.add("admin");
   const timeSpan=document.createElement("span"); timeSpan.textContent=new Date(m.ts).toLocaleString();
   metaRow.appendChild(nameSpan); metaRow.appendChild(timeSpan);
 
@@ -111,7 +113,13 @@ function appendMessage(m){
 
   const txt=document.createElement("div"); txt.textContent=m.text||"";
   bubble.appendChild(metaRow); bubble.appendChild(txt); el.appendChild(avatar); el.appendChild(bubble);
-  messagesEl.appendChild(el); messagesEl.scrollTop=messagesEl.scrollHeight;
+  messagesEl.appendChild(el);
+  messagesEl.scrollTop=messagesEl.scrollHeight;
+
+  // Supprimer le message après 5 secondes
+  setTimeout(() => { 
+    if(el.parentNode) el.parentNode.removeChild(el); 
+  }, 5000);
 }
 
 // Filtre

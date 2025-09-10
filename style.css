@@ -1,5 +1,5 @@
 :root {
-  --bg:#0f1724;--accent:#7c3aed;--muted:#94a3b8;--msg:#e6eef8;
+  --bg:#0f1724;--accent:#7c3aed;--muted:#94a3b8;--msg:#e6eef8;--admin:#ff4d4d;
 }
 *{box-sizing:border-box}
 body{
@@ -52,6 +52,7 @@ header h1{margin:0;font-size:1.1rem}
   line-height:1.25;
 }
 .meta-row{display:flex;gap:8px;align-items:center;font-size:0.8rem;color:var(--muted)}
+.meta-row .admin{color:var(--admin);}
 .top-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
 .send-row{display:flex;gap:8px}
 input,textarea{
