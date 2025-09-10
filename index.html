@@ -1,45 +1,24 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>G-Tchat</title>
-  <style>
-    :root{--bg:#0f1724;--card:#0b1220;--accent:#7c3aed;--muted:#94a3b8;--msg:#e6eef8}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,Segoe UI,Arial;background:linear-gradient(180deg,#071023 0%,#071731 100%);color:var(--msg);display:flex;align-items:center;justify-content:center;height:100vh}
-    .app{width:100%;max-width:880px;height:90vh;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.15));border-radius:12px;padding:18px;display:grid;grid-template-rows:auto 1fr auto;gap:12px;box-shadow:0 10px 30px rgba(2,6,23,0.6)}
-    header{display:flex;align-items:center;gap:12px}
-    header h1{margin:0;font-size:1.1rem}
-    .meta{margin-left:auto;color:var(--muted);font-size:0.9rem}
-    .chat-window{background:rgba(255,255,255,0.02);border-radius:10px;padding:12px;overflow:auto;display:flex;flex-direction:column;gap:8px}
-    .message{display:flex;gap:10px;align-items:flex-start}
-    .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(180deg,var(--accent),#6d28d9);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;overflow:hidden}
-    .avatar img{width:100%;height:100%;object-fit:cover}
-    .bubble{background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:10px;max-width:78%;line-height:1.25}
-    .meta-row{display:flex;gap:8px;align-items:center;font-size:0.8rem;color:var(--muted)}
-    input[type=text], textarea{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 10px;border-radius:8px;color:var(--msg);outline:none}
-    input[type=text]::placeholder, textarea::placeholder{color:rgba(255,255,255,0.35)}
-    .send-row{display:flex;gap:8px}
-    button{background:var(--accent);border:none;padding:9px 12px;border-radius:8px;color:white;cursor:pointer}
-    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
-    @media(max-width:520px){.app{height:95vh;padding:12px}.avatar{width:34px;height:34px}}
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Chat App -->
   <main class="app">
     <header>
       <h1>G-Tchat</h1>
       <div class="meta">Messages en temps réel · Firebase Realtime DB</div>
-      <button id="loginBtn">Connexion Google</button>
-      <button id="logoutBtn" style="display:none;">Déconnexion</button>
     </header>
 
     <section id="messages" class="chat-window" aria-live="polite"></section>
 
     <div>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input id="nick" type="text" placeholder="Votre pseudo" style="flex:0 0 220px;" disabled />
+        <input id="nick" type="text" placeholder="Votre pseudo" disabled />
         <input id="filter" type="text" placeholder="Filtrer par pseudo ou texte (optionnel)" />
       </div>
       <div class="send-row">
@@ -52,127 +31,23 @@
     </div>
   </main>
 
-  <!-- Firebase compat SDK -->
+  <!-- Login Popup -->
+  <div id="loginPopup">
+    <div class="popup-content">
+      <h2>Connexion à G-Tchat</h2>
+      <button id="googleLoginBtn">Se connecter avec Google</button>
+      <input id="email" type="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Mot de passe" />
+      <button id="loginEmailBtn">Se connecter</button>
+      <button id="registerEmailBtn">S'inscrire</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyD4FuUOmGCb00GLt2gmdcayaSliaOS7DX0",
-      authDomain: "g-tchat-a1d75.firebaseapp.com",
-      databaseURL: "https://g-tchat-a1d75-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "g-tchat-a1d75",
-      storageBucket: "g-tchat-a1d75.appspot.com",
-      messagingSenderId: "248087967340",
-      appId: "1:248087967340:web:602ad89b69877f9178ca49"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const messagesRef = db.ref('messages');
-
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const nickEl = document.getElementById('nick');
-    const textEl = document.getElementById('text');
-    const sendBtn = document.getElementById('send');
-    const messagesEl = document.getElementById('messages');
-    const filterEl = document.getElementById('filter');
-
-    // Auth Google
-    loginBtn.addEventListener('click', () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      firebase.auth().signInWithPopup(provider);
-    });
-
-    logoutBtn.addEventListener('click', () => {
-      firebase.auth().signOut();
-    });
-
-    firebase.auth().onAuthStateChanged(user => {
-      if(user){
-        loginBtn.style.display = 'none';
-        logoutBtn.style.display = 'inline-block';
-        nickEl.value = user.displayName || 'Anon';
-        nickEl.disabled = true;
-        textEl.disabled = false;
-        sendBtn.disabled = false;
-      } else {
-        loginBtn.style.display = 'inline-block';
-        logoutBtn.style.display = 'none';
-        nickEl.value = '';
-        nickEl.disabled = true;
-        textEl.disabled = true;
-        sendBtn.disabled = true;
-      }
-    });
-
-    messagesRef.limitToLast(200).on('child_added', snapshot => {
-      appendMessage(snapshot.val());
-    });
-
-    sendBtn.addEventListener('click', sendMessage);
-    textEl.addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } });
-
-    function sendMessage(){
-      const user = firebase.auth().currentUser;
-      if(!user) return;
-      const text = textEl.value.trim().slice(0,500);
-      if(!text) return;
-      const payload = {
-        nick: user.displayName,
-        photo: user.photoURL || '',
-        text,
-        ts: Date.now()
-      };
-      messagesRef.push(payload).then(()=> textEl.value='');
-    }
-
-    function appendMessage(m){
-      const el = document.createElement('div');
-      el.className = 'message';
-      el.setAttribute('data-text', m.text || '');
-      el.setAttribute('data-nick', m.nick || '');
-
-      const avatar = document.createElement('div');
-      avatar.className = 'avatar';
-      if(m.photo){
-        const img = document.createElement('img');
-        img.src = m.photo;
-        avatar.appendChild(img);
-      } else {
-        avatar.textContent = (m.nick || 'A').slice(0,2).toUpperCase();
-      }
-
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble';
-      const metaRow = document.createElement('div');
-      metaRow.className = 'meta-row';
-      const nameSpan = document.createElement('strong');
-      nameSpan.textContent = m.nick || 'Anon';
-      const timeSpan = document.createElement('span');
-      timeSpan.textContent = new Date(m.ts).toLocaleString();
-      metaRow.appendChild(nameSpan);
-      metaRow.appendChild(timeSpan);
-      const txt = document.createElement('div');
-      txt.textContent = m.text || '';
-      bubble.appendChild(metaRow);
-      bubble.appendChild(txt);
-      el.appendChild(avatar);
-      el.appendChild(bubble);
-      messagesEl.appendChild(el);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
-
-    filterEl.addEventListener('input', ()=>{
-      const q = filterEl.value.toLowerCase();
-      Array.from(messagesEl.children).forEach(item => {
-        const text = item.getAttribute('data-text').toLowerCase();
-        const nick = item.getAttribute('data-nick').toLowerCase();
-        item.style.display = (!q || text.includes(q) || nick.includes(q)) ? '' : 'none';
-      });
-    });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
