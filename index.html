@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Global Chat</title>
+  <title>G-Tchat</title>
   <style>
     :root{--bg:#0f1724;--card:#0b1220;--accent:#7c3aed;--muted:#94a3b8;--msg:#e6eef8}
     *{box-sizing:border-box}
@@ -14,38 +14,38 @@
     .meta{margin-left:auto;color:var(--muted);font-size:0.9rem}
     .chat-window{background:rgba(255,255,255,0.02);border-radius:10px;padding:12px;overflow:auto;display:flex;flex-direction:column;gap:8px}
     .message{display:flex;gap:10px;align-items:flex-start}
-    .avatar{width:38px;height:38px;border-radius:8px;background:linear-gradient(180deg,var(--accent),#6d28d9);display:flex;align-items:center;justify-content:center;font-weight:700;color:white}
+    .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(180deg,var(--accent),#6d28d9);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;overflow:hidden}
+    .avatar img{width:100%;height:100%;object-fit:cover}
     .bubble{background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:10px;max-width:78%;line-height:1.25}
     .meta-row{display:flex;gap:8px;align-items:center;font-size:0.8rem;color:var(--muted)}
-    .controls{display:flex;gap:8px;align-items:center}
     input[type=text], textarea{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 10px;border-radius:8px;color:var(--msg);outline:none}
     input[type=text]::placeholder, textarea::placeholder{color:rgba(255,255,255,0.35)}
     .send-row{display:flex;gap:8px}
     button{background:var(--accent);border:none;padding:9px 12px;border-radius:8px;color:white;cursor:pointer}
     button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
-    footer{display:flex;gap:8px;align-items:center}
     @media(max-width:520px){.app{height:95vh;padding:12px}.avatar{width:34px;height:34px}}
   </style>
 </head>
 <body>
   <main class="app">
     <header>
-      <h1>Global Chat</h1>
+      <h1>G-Tchat</h1>
       <div class="meta">Messages en temps réel · Firebase Realtime DB</div>
+      <button id="loginBtn">Connexion Google</button>
+      <button id="logoutBtn" style="display:none;">Déconnexion</button>
     </header>
 
     <section id="messages" class="chat-window" aria-live="polite"></section>
 
     <div>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input id="nick" type="text" placeholder="Votre pseudo (ex: Alice)" style="flex:0 0 220px;" />
+        <input id="nick" type="text" placeholder="Votre pseudo" style="flex:0 0 220px;" disabled />
         <input id="filter" type="text" placeholder="Filtrer par pseudo ou texte (optionnel)" />
-        <button id="clearLocal" class="ghost">Effacer messages locaux</button>
       </div>
       <div class="send-row">
-        <textarea id="text" rows="2" placeholder="Écrivez un message..."></textarea>
+        <textarea id="text" rows="2" placeholder="Écrivez un message..." disabled></textarea>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <button id="send">Envoyer</button>
+          <button id="send" disabled>Envoyer</button>
           <button id="scrollBottom" class="ghost">Aller en bas</button>
         </div>
       </div>
@@ -58,7 +58,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
   <script>
-    // Configuration Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyD4FuUOmGCb00GLt2gmdcayaSliaOS7DX0",
       authDomain: "g-tchat-a1d75.firebaseapp.com",
@@ -69,71 +68,67 @@
       appId: "1:248087967340:web:602ad89b69877f9178ca49"
     };
 
-    // Initialisation Firebase (compat)
     firebase.initializeApp(firebaseConfig);
-
-    // Connexion anonyme
-    firebase.auth().signInAnonymously()
-      .then(() => console.log("Connecté anonymement ✅"))
-      .catch(err => console.error("Erreur d'auth anonyme:", err));
-
     const db = firebase.database();
     const messagesRef = db.ref('messages');
 
-    // UI éléments
-    const messagesEl = document.getElementById('messages');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
     const nickEl = document.getElementById('nick');
     const textEl = document.getElementById('text');
     const sendBtn = document.getElementById('send');
+    const messagesEl = document.getElementById('messages');
     const filterEl = document.getElementById('filter');
-    const clearLocalBtn = document.getElementById('clearLocal');
-    const scrollBottomBtn = document.getElementById('scrollBottom');
 
-    // Lecture en temps réel
-    messagesRef.limitToLast(200).on('child_added', snapshot => {
-      const m = snapshot.val();
-      appendMessage(m);
+    // Auth Google
+    loginBtn.addEventListener('click', () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider);
     });
 
-    // Envoi
-    sendBtn.addEventListener('click', sendMessage);
-    textEl.addEventListener('keydown', e => {
-      if(e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
+    logoutBtn.addEventListener('click', () => {
+      firebase.auth().signOut();
+    });
+
+    firebase.auth().onAuthStateChanged(user => {
+      if(user){
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+        nickEl.value = user.displayName || 'Anon';
+        nickEl.disabled = true;
+        textEl.disabled = false;
+        sendBtn.disabled = false;
+      } else {
+        loginBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'none';
+        nickEl.value = '';
+        nickEl.disabled = true;
+        textEl.disabled = true;
+        sendBtn.disabled = true;
       }
     });
 
+    messagesRef.limitToLast(200).on('child_added', snapshot => {
+      appendMessage(snapshot.val());
+    });
+
+    sendBtn.addEventListener('click', sendMessage);
+    textEl.addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } });
+
     function sendMessage(){
-      const nick = (nickEl.value || 'Anon').trim().slice(0,30);
-      const text = (textEl.value || '').trim().slice(0,500);
+      const user = firebase.auth().currentUser;
+      if(!user) return;
+      const text = textEl.value.trim().slice(0,500);
       if(!text) return;
       const payload = {
-        nick,
+        nick: user.displayName,
+        photo: user.photoURL || '',
         text,
         ts: Date.now()
       };
-      messagesRef.push(payload).then(() => {
-        textEl.value = '';
-      }).catch(err => {
-        console.error('Erreur écriture:', err);
-        alert('Impossible d\'envoyer le message. Vérifiez la configuration Firebase et les règles de la DB.');
-      });
+      messagesRef.push(payload).then(()=> textEl.value='');
     }
 
-    // Filtre local
-    filterEl.addEventListener('input', applyFilter);
-    function applyFilter(){
-      const q = filterEl.value.trim().toLowerCase();
-      Array.from(messagesEl.children).forEach(item => {
-        const text = item.getAttribute('data-text') || '';
-        const nick = item.getAttribute('data-nick') || '';
-        const visible = !q || text.toLowerCase().includes(q) || nick.toLowerCase().includes(q);
-        item.style.display = visible ? '' : 'none';
-      });
-    }
-
-    // Ajout message dans le DOM
     function appendMessage(m){
       const el = document.createElement('div');
       el.className = 'message';
@@ -142,53 +137,42 @@
 
       const avatar = document.createElement('div');
       avatar.className = 'avatar';
-      avatar.textContent = (m.nick || 'A').slice(0,2).toUpperCase();
+      if(m.photo){
+        const img = document.createElement('img');
+        img.src = m.photo;
+        avatar.appendChild(img);
+      } else {
+        avatar.textContent = (m.nick || 'A').slice(0,2).toUpperCase();
+      }
 
       const bubble = document.createElement('div');
       bubble.className = 'bubble';
-
       const metaRow = document.createElement('div');
       metaRow.className = 'meta-row';
       const nameSpan = document.createElement('strong');
-      nameSpan.style.fontWeight = 700;
-      nameSpan.style.color = 'white';
       nameSpan.textContent = m.nick || 'Anon';
       const timeSpan = document.createElement('span');
       timeSpan.textContent = new Date(m.ts).toLocaleString();
       metaRow.appendChild(nameSpan);
       metaRow.appendChild(timeSpan);
-
       const txt = document.createElement('div');
       txt.textContent = m.text || '';
-
       bubble.appendChild(metaRow);
       bubble.appendChild(txt);
-
       el.appendChild(avatar);
       el.appendChild(bubble);
-
       messagesEl.appendChild(el);
-      while(messagesEl.children.length > 500) messagesEl.removeChild(messagesEl.firstChild);
-
-      applyFilter();
-
-      const atBottom = (messagesEl.scrollTop + messagesEl.clientHeight) >= (messagesEl.scrollHeight - 80);
-      if(atBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
+      messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    // Effacer affichage local
-    clearLocalBtn.addEventListener('click', ()=>{ messagesEl.innerHTML=''; });
-
-    // Aller en bas
-    scrollBottomBtn.addEventListener('click', ()=>{ messagesEl.scrollTop = messagesEl.scrollHeight; });
-
-    // Vérification connexion
-    db.ref('.info/connected').on('value', snap => {
-      if(!snap.val()){
-        console.warn('Déconnecté de Firebase Realtime Database.');
-      }
+    filterEl.addEventListener('input', ()=>{
+      const q = filterEl.value.toLowerCase();
+      Array.from(messagesEl.children).forEach(item => {
+        const text = item.getAttribute('data-text').toLowerCase();
+        const nick = item.getAttribute('data-nick').toLowerCase();
+        item.style.display = (!q || text.includes(q) || nick.includes(q)) ? '' : 'none';
+      });
     });
-
   </script>
 </body>
 </html>
