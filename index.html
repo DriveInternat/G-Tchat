@@ -1,21 +1,3 @@
-<!--
-Global Chat (single-file) — HTML / CSS / JS
-Instructions:
-1) Créez un projet Firebase (https://console.firebase.google.com).
-2) Activez Realtime Database et mettez des règles de test pendant le développement :
-   {
-     "rules": {
-       ".read": true,
-       ".write": true
-     }
-   }
-   *ATTENTION* : ces règles sont ouvertes. Avant production, restreignez-les (ex: auth).
-3) Récupérez la configuration Firebase et remplacez l'objet `firebaseConfig` ci-dessous.
-4) Déployez ce fichier sur GitHub Pages (ou tout hébergement statique).
-
-Ce fichier fournit un chat global simple (sans authentification) utilisant Firebase Realtime Database.
--->
-
 <!doctype html>
 <html lang="fr">
 <head>
@@ -70,20 +52,12 @@ Ce fichier fournit un chat global simple (sans authentification) utilisant Fireb
     </div>
   </main>
 
-  <!-- Firebase compat SDK (facile à utiliser dans une page statique) -->
-<!-- Firebase compat SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <!-- Firebase compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
   <script>
-    // ==== REMPLACEZ par votre configuration Firebase ====
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "firebase/app";
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-
-    // Your web app's Firebase configuration
     // Configuration Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyD4FuUOmGCb00GLt2gmdcayaSliaOS7DX0",
@@ -101,11 +75,10 @@ Ce fichier fournit un chat global simple (sans authentification) utilisant Fireb
     // Connexion anonyme
     firebase.auth().signInAnonymously()
       .then(() => console.log("Connecté anonymement ✅"))
-      .catch(err => console.error("Erreur auth anonyme:", err));
+      .catch(err => console.error("Erreur d'auth anonyme:", err));
 
     const db = firebase.database();
     const messagesRef = db.ref('messages');
-
 
     // UI éléments
     const messagesEl = document.getElementById('messages');
@@ -116,22 +89,24 @@ Ce fichier fournit un chat global simple (sans authentification) utilisant Fireb
     const clearLocalBtn = document.getElementById('clearLocal');
     const scrollBottomBtn = document.getElementById('scrollBottom');
 
-    // Lecture en temps réel : on affiche les nouveaux enfants
+    // Lecture en temps réel
     messagesRef.limitToLast(200).on('child_added', snapshot => {
       const m = snapshot.val();
       appendMessage(m);
     });
 
-    // Remplir l'historique initial (déjà couvert par child_added) mais on garde cette fonction pour le reset
-    messagesRef.limitToLast(200).once('value').then(() => { /* noop */ });
-
     // Envoi
     sendBtn.addEventListener('click', sendMessage);
-    textEl.addEventListener('keydown', e => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+    textEl.addEventListener('keydown', e => {
+      if(e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
 
     function sendMessage(){
       const nick = (nickEl.value || 'Anon').trim().slice(0,30);
-      const text = (textEl.value || '').trim().slice(0,1000);
+      const text = (textEl.value || '').trim().slice(0,500);
       if(!text) return;
       const payload = {
         nick,
@@ -158,7 +133,7 @@ Ce fichier fournit un chat global simple (sans authentification) utilisant Fireb
       });
     }
 
-    // Ajout d'un message dans le DOM
+    // Ajout message dans le DOM
     function appendMessage(m){
       const el = document.createElement('div');
       el.className = 'message';
@@ -193,34 +168,26 @@ Ce fichier fournit un chat global simple (sans authentification) utilisant Fireb
       el.appendChild(bubble);
 
       messagesEl.appendChild(el);
-      // limite locale : uniquement derniers 500 éléments
       while(messagesEl.children.length > 500) messagesEl.removeChild(messagesEl.firstChild);
 
-      // appliquer filtre courant
       applyFilter();
 
-      // scroller automatiquement sauf si l'utilisateur a scrollé vers le haut
       const atBottom = (messagesEl.scrollTop + messagesEl.clientHeight) >= (messagesEl.scrollHeight - 80);
       if(atBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    // Effacer l'affichage local (pas la DB)
+    // Effacer affichage local
     clearLocalBtn.addEventListener('click', ()=>{ messagesEl.innerHTML=''; });
 
-    // bouton aller en bas
+    // Aller en bas
     scrollBottomBtn.addEventListener('click', ()=>{ messagesEl.scrollTop = messagesEl.scrollHeight; });
 
-    // Gestion basique d'erreurs DB
+    // Vérification connexion
     db.ref('.info/connected').on('value', snap => {
       if(!snap.val()){
         console.warn('Déconnecté de Firebase Realtime Database.');
       }
     });
-
-    // NOTE: pour une version "production":
-    // - Ajoutez une authentification (Firebase Auth, Google/GitHub/anonyme),
-    // - Mettez des règles DB qui autorisent l'écriture seulement si authentifié,
-    // - Ajoutez modération (préventif) ou suppression côté serveur.
 
   </script>
 </body>
